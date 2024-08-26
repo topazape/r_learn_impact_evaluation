@@ -1,4 +1,4 @@
-# 『Python で学ぶ効果検証入門』を R で学ぶ
+# R で学ぶ『Python で学ぶ効果検証入門』
 
 オーム社から発売中の『[Python で学ぶ効果検証入門](https://www.ohmsha.co.jp/book/9784274231162/)』の Python コードを R で実装しました。
 
