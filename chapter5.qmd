@@ -1,6 +1,6 @@
 ---
 title: "Regression Discontinuity Designを用いて効果検証を行う"
-format: html
+format: gfm
 editor: visual
 ---
 

@@ -1,6 +1,6 @@
 ---
 title: "chaper4"
-format: html
+format: gfm
 editor: visual
 ---
 
