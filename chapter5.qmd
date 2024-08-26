@@ -1,0 +1,174 @@
+---
+title: "Regression Discontinuity Designを用いて効果検証を行う"
+format: html
+editor: visual
+---
+
+# 前準備
+
+```{r}
+library(tidyverse)
+
+URL_COUPON <- "https://raw.githubusercontent.com/HirotakeIto/intro_to_impact_evaluation_with_python/main/data/ch5_coupon.csv"
+URL_COUPON_V2 <- "https://raw.githubusercontent.com/HirotakeIto/intro_to_impact_evaluation_with_python/main/data/ch5_coupon_v2.csv"
+```
+
+# RDD が適用できるシチュエーション
+
+## クーポン配布施策：クーポンの効果は本当に大きいのか？
+
+### 太郎くんの分析を再現するコード
+
+```{r}
+df_coupon <- read_csv(URL_COUPON)
+
+df_coupon |>
+  mutate(
+    treatment = factor(treatment)
+  ) |>
+  ggplot(
+    aes(
+      x = last_month_spend, y = this_month_spend,
+      group = treatment,
+      shape = treatment
+      )) +
+  geom_point() +
+  geom_vline(xintercept = 10000, linetype = "dashed")
+```
+
+#### 先月と今月の売り上げの集計
+
+```{r}
+df_coupon |>
+  group_by(treatment) |>
+  summarise(
+    last_month_spend = mean(last_month_spend),
+    this_month_spend = mean(this_month_spend),
+  )
+
+```
+
+# Sharp RDD の仮定と推定
+
+## rdrobust パッケージを用いた Sharp RDD の推定の実装
+
+#### プログラム5.1 Sharp RDD の推定
+
+```{r}
+library(rdrobust)
+
+df_coupon <- read_csv(URL_COUPON)
+
+result_rdd <- rdrobust::rdrobust(
+  y = df_coupon$this_month_spend,
+  x = df_coupon$last_month_spend,
+  c = 10000,
+  all = TRUE,
+)
+summary(result_rdd)
+```
+
+```{r}
+rdplot(
+  y = df_coupon$this_month_spend,
+  x = df_coupon$last_month_spend,
+  binselect = "es",
+  c = 10000,
+  ci = 95,
+  title = "Causal Effects of Coupons",
+  y.label = "this month spend",
+  x.label = "last month spend",
+)
+```
+
+## McCrary の検定の実装
+
+#### プログラム5.2 McCrary の検定
+
+```{r}
+df_coupon = read_csv(URL_COUPON)
+
+ggplot(
+  df_coupon,
+  aes(x = last_month_spend)
+) +
+  geom_histogram(binwidth = 165) +
+  xlim(c(9000, 11000))
+```
+
+```{r}
+library(rddensity)
+
+rddensity::rddensity(
+  X = df_coupon$last_month_spend,
+  c = 10000
+) |>
+  summary()
+```
+
+## 共変量のバランステストの実装
+
+#### プログラム5.3 共変量のバランステスト
+
+```{r}
+library(rdrobust)
+
+df_coupon <- read_csv(URL_COUPON)
+
+result_sex <- rdrobust(
+  y = df_coupon$sex,
+  x = df_coupon$last_month_spend,
+  c = 10000,
+)
+
+result_age <- rdrobust(
+  y = df_coupon$age,
+  x = df_coupon$last_month_spend,
+  c = 10000,
+)
+
+tribble(
+  ~X, ~`RD Effect`, ~`Robust p-val`,
+  "sex", as.numeric(result_sex$Estimate[1, "tau.us"]), result_sex$pv[2,],
+  "age", as.numeric(result_age$Estimate[1, "tau.us"]), result_age$pv[2,],
+)
+```
+
+# Fuzzy RDD：処置確率が閾値によって不連続的に変化する場合の RDD
+
+## rdrobust を用いた Fuzzy RDD の推定の実装
+
+#### プログラム5.4 Fuzzy RDD の推定
+
+```{r}
+df_coupon_v2 <- read_csv(URL_COUPON_V2)
+
+df_coupon_v2 |>
+  mutate(
+    treatment = factor(treatment)
+  ) |>
+  ggplot(
+    aes(
+      x = last_month_spend, y = this_month_spend,
+      group = treatment,
+      shape = treatment,
+      color = treatment,
+    )
+  ) +
+  geom_point(size = 3, alpha = 0.7) +
+  geom_vline(xintercept = 10000, linetype = "dashed")
+```
+
+```{r}
+df_coupon_v2 <- read_csv(URL_COUPON_V2)
+
+result_fuzzy_rdd <- rdrobust::rdrobust(
+  y = df_coupon_v2$this_month_spend,
+  x = df_coupon_v2$last_month_spend,
+  fuzzy = df_coupon_v2$treatment,
+  c = 10000,
+  all = TRUE
+)
+
+summary(result_fuzzy_rdd)
+```

@@ -1,0 +1,120 @@
+---
+title: "2_A/Bテストを用いてクリーンに効果検証を行う"
+author: "topazape"
+format: gfm
+editor: visual
+---
+
+# 前準備
+
+```{r}
+library(tidyverse)
+
+URL_CH2_LOGDATA <- "https://raw.githubusercontent.com/HirotakeIto/intro_to_impact_evaluation_with_python/main/data/ch2_logdata.csv"
+URL_LENTA_DATA <- "https://raw.githubusercontent.com/HirotakeIto/intro_to_impact_evaluation_with_python/main/data/lenta_dataset.csv"
+```
+
+# Prelude
+
+## プログラム2.1 太郎くんの分析の再現
+
+```{r}
+df <- read_csv(URL_CH2_LOGDATA)
+df |>
+  group_by(is_treatment) |>
+  summarise(
+    response_att = mean(response_att) * 100
+  ) -> df_result
+
+df_result
+```
+
+```{r}
+df_result |>
+  ggplot(aes(x = response_att, y = factor(is_treatment))) +
+  geom_col() +
+  labs(x = "reaponse_att (%)", y = "is_treatment")
+```
+
+# A/B テストの基本的な発想
+
+```{r}
+read_csv(URL_LENTA_DATA) |>
+  group_by(is_treatment) |>
+  summarise(
+    food_share_15d = mean(food_share_15d) * 100
+  )
+```
+
+# A/B テストの設計と分析
+
+## A/B テストの設計
+
+### 割当
+
+#### プログラム2.2 ランダム割当
+
+```{r}
+set.seed(0)
+is_treatment <- sample(c(0, 1), size = 1, prob = c(0.3, 0.7), replace = TRUE)
+is_treatment
+```
+
+#### プログラム2.3 ハッシュ化を通じたランダム割当
+
+```{r}
+library(digest)
+uid <- "hogehoge"
+salt <- "salt0_"
+hash_value <- digest(paste0(salt, uid), algo = "sha256")
+hash_value_int <- as.numeric(paste0("0x", hash_value))
+
+if ((hash_value_int %% 10) < 3) {
+  is_treatment <- 1
+} else {
+  is_treatment <- 0
+}
+
+is_treatment
+```
+
+# A/B テスト
+
+## 太郎くんのストーリーにある図表の再現
+
+```{r}
+df_result_response <- read_csv(URL_LENTA_DATA) |>
+  group_by(is_treatment) |>
+  summarise(
+    response_att = mean(response_att) * 100
+  )
+
+df_result_response
+```
+
+```{r}
+df_result_response |>
+  ggplot(aes(x = response_att, y = factor(is_treatment))) +
+  geom_col() +
+  labs(x = "response_att (%)", y = "is_treatment")
+```
+
+# R によるプッシュ通知施策効果の検証
+
+```{r}
+df <- read_csv(URL_LENTA_DATA)
+df_balance_test <- df |>
+  group_by(is_treatment) |>
+  summarise(
+    food_share_15d = mean(food_share_15d),
+    age = mean(age, na.rm = TRUE),
+    is_women = mean(is_women)
+  )
+df_balance_test
+```
+
+```{r}
+df |>
+  lm(data = _, response_att ~ is_treatment) |>
+  summary()
+```

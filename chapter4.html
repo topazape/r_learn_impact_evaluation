@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.4.555">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>chaper4</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="chapter4_files/libs/clipboard/clipboard.min.js"></script>
+<script src="chapter4_files/libs/quarto-html/quarto.js"></script>
+<script src="chapter4_files/libs/quarto-html/popper.min.js"></script>
+<script src="chapter4_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="chapter4_files/libs/quarto-html/anchor.min.js"></script>
+<link href="chapter4_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="chapter4_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="chapter4_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="chapter4_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="chapter4_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">chaper4</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="前準備" class="level1">
+<h1>前準備</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.4     ✔ readr     2.1.5
+✔ forcats   1.0.0     ✔ stringr   1.5.1
+✔ ggplot2   3.5.1     ✔ tibble    3.2.1
+✔ lubridate 1.9.3     ✔ tidyr     1.3.1
+✔ purrr     1.0.2     
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>URL_ORGAN_SHORT <span class="ot">&lt;-</span> <span class="st">"https://raw.githubusercontent.com/HirotakeIto/intro_to_impact_evaluation_with_python/main/data/ch4_organ_donations_short.csv"</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>URL_ORGAN_FULL <span class="ot">&lt;-</span> <span class="st">"https://raw.githubusercontent.com/HirotakeIto/intro_to_impact_evaluation_with_python/main/data/ch4_organ_donations_full.csv"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="did-の発想に基づく施策効果分析" class="level1">
+<h1>DID の発想に基づく施策効果分析</h1>
+<section id="プログラム4.1-did-の発想に基づく施策効果分析" class="level4">
+<h4 class="anchored" data-anchor-id="プログラム4.1-did-の発想に基づく施策効果分析">プログラム4.1 DID の発想に基づく施策効果分析</h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>df_organ_donations_short <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(URL_ORGAN_SHORT)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Rows: 54 Columns: 7
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: ","
+chr (2): State, Quarter
+dbl (5): Rate, Quarter_Num, IsTreatmentGroup, AfterTreatment, IsTreatment
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>df_organ_donations_short</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 54 × 7
+   State   Quarter  Rate Quarter_Num IsTreatmentGroup AfterTreatment IsTreatment
+   &lt;chr&gt;   &lt;chr&gt;   &lt;dbl&gt;       &lt;dbl&gt;            &lt;dbl&gt;          &lt;dbl&gt;       &lt;dbl&gt;
+ 1 Alaska  Q22011  0.77            3                0              0           0
+ 2 Alaska  Q32011  0.78            4                0              1           0
+ 3 Arizona Q22011  0.226           3                0              0           0
+ 4 Arizona Q32011  0.250           4                0              1           0
+ 5 Califo… Q22011  0.274           3                1              0           0
+ 6 Califo… Q32011  0.264           4                1              1           1
+ 7 Colora… Q22011  0.674           3                0              0           0
+ 8 Colora… Q32011  0.672           4                0              1           0
+ 9 Connec… Q22011  0.395           3                0              0           0
+10 Connec… Q32011  0.403           4                0              1           0
+# ℹ 44 more rows</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>df_organ_donations_short <span class="sc">|&gt;</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(IsTreatmentGroup, AfterTreatment) <span class="sc">|&gt;</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">rate_mean =</span> <span class="fu">mean</span>(Rate)</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`summarise()` has grouped output by 'IsTreatmentGroup'. You can override using
+the `.groups` argument.</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 4 × 3
+# Groups:   IsTreatmentGroup [2]
+  IsTreatmentGroup AfterTreatment rate_mean
+             &lt;dbl&gt;          &lt;dbl&gt;     &lt;dbl&gt;
+1                0              0     0.449
+2                0              1     0.460
+3                1              0     0.274
+4                1              1     0.264</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>df_organ_donations_short <span class="sc">|&gt;</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(IsTreatmentGroup, AfterTreatment) <span class="sc">|&gt;</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">rate_mean =</span> <span class="fu">mean</span>(Rate)</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_from =</span> <span class="fu">c</span>(IsTreatmentGroup, AfterTreatment),</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_from =</span> rate_mean</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">result_%</span><span class="st">`</span> <span class="ot">=</span> <span class="dv">100</span> <span class="sc">*</span> ((<span class="st">`</span><span class="at">1_1</span><span class="st">`</span> <span class="sc">-</span> <span class="st">`</span><span class="at">1_0</span><span class="st">`</span>) <span class="sc">-</span> (<span class="st">`</span><span class="at">0_1</span><span class="st">`</span> <span class="sc">-</span> <span class="st">`</span><span class="at">0_0</span><span class="st">`</span>))</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`summarise()` has grouped output by 'IsTreatmentGroup'. You can override using
+the `.groups` argument.</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 1
+  `result_%`
+       &lt;dbl&gt;
+1      -2.16</code></pre>
+</div>
+</div>
+</section>
+<section id="プログラム4.2-did-による訴求内容変更施策の分析" class="level4">
+<h4 class="anchored" data-anchor-id="プログラム4.2-did-による訴求内容変更施策の分析">プログラム4.2 DID による訴求内容変更施策の分析</h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(broom)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(estimatr)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>df_organ_donations_short <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(URL_ORGAN_SHORT)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Rows: 54 Columns: 7
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: ","
+chr (2): State, Quarter
+dbl (5): Rate, Quarter_Num, IsTreatmentGroup, AfterTreatment, IsTreatment
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>df_organ_donations_short <span class="sc">|&gt;</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  estimatr<span class="sc">::</span><span class="fu">lm_robust</span>(</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    Rate <span class="sc">~</span> IsTreatment <span class="sc">+</span> State <span class="sc">+</span> <span class="fu">factor</span>(Quarter_Num),</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">clusters =</span> State,</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">se_type =</span> <span class="st">"stata"</span>,</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> _,</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>  broom<span class="sc">::</span><span class="fu">tidy</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                        term    estimate    std.error     statistic
+1                (Intercept)  0.76956731 3.548978e-03  2.168420e+02
+2                IsTreatment -0.02156538 7.097955e-03 -3.038253e+00
+3               StateArizona -0.53680000 4.141492e-16 -1.296151e+15
+4            StateCalifornia -0.49526731 3.548978e-03 -1.395521e+02
+5              StateColorado -0.10245000 4.468745e-16 -2.292590e+14
+6           StateConnecticut -0.37585000 4.159671e-16 -9.035570e+14
+7  StateDistrict of Columbia -0.42625000 4.138805e-16 -1.029887e+15
+8               StateFlorida -0.36860000 4.226606e-16 -8.720946e+14
+9                StateHawaii -0.34675000 5.305522e-16 -6.535643e+14
+10            StateLouisiana -0.19660000 4.137704e-16 -4.751428e+14
+11             StateMaryland -0.31155000 4.475881e-16 -6.960641e+14
+12             StateMichigan -0.55580000 4.170747e-16 -1.332615e+15
+13            StateMinnesota -0.25260000 4.214775e-16 -5.993202e+14
+14             StateMissouri -0.36740000 4.223098e-16 -8.699774e+14
+15              StateMontana -0.11195000 4.819429e-16 -2.322889e+14
+16             StateNebraska -0.33675000 4.445959e-16 -7.574293e+14
+17        StateNew Hampshire -0.22615000 4.498132e-16 -5.027643e+14
+18           StateNew Jersey -0.46760000 5.546780e-16 -8.430117e+14
+19             StateNew York -0.63675000 4.142415e-16 -1.537147e+15
+20       StateNorth Carolina -0.24200000 4.213135e-16 -5.743942e+14
+21                 StateOhio -0.20490000 4.224604e-16 -4.850159e+14
+22         StatePennsylvania -0.31940000 4.154655e-16 -7.687763e+14
+23       StateSouth Carolina -0.51515000 4.217216e-16 -1.221540e+15
+24            StateTennessee -0.43450000 4.809579e-16 -9.034055e+14
+25             StateVirginia -0.42275000 4.137624e-16 -1.021722e+15
+26           StateWashington -0.18860000 4.210382e-16 -4.479404e+14
+27            StateWisconsin -0.20460000 4.210744e-16 -4.858998e+14
+28              StateWyoming -0.18260000 4.138020e-16 -4.412738e+14
+29      factor(Quarter_Num)4  0.01086538 7.097955e-03  1.530777e+00
+        p.value     conf.low    conf.high df outcome
+1  6.953367e-44  0.762272280  0.776862336 26    Rate
+2  5.362415e-03 -0.036155440 -0.006975329 26    Rate
+3  0.000000e+00 -0.536800000 -0.536800000 26    Rate
+4  6.524119e-39 -0.502562336 -0.487972280 26    Rate
+5  0.000000e+00 -0.102450000 -0.102450000 26    Rate
+6  0.000000e+00 -0.375850000 -0.375850000 26    Rate
+7  0.000000e+00 -0.426250000 -0.426250000 26    Rate
+8  0.000000e+00 -0.368600000 -0.368600000 26    Rate
+9  0.000000e+00 -0.346750000 -0.346750000 26    Rate
+10 0.000000e+00 -0.196600000 -0.196600000 26    Rate
+11 0.000000e+00 -0.311550000 -0.311550000 26    Rate
+12 0.000000e+00 -0.555800000 -0.555800000 26    Rate
+13 0.000000e+00 -0.252600000 -0.252600000 26    Rate
+14 0.000000e+00 -0.367400000 -0.367400000 26    Rate
+15 0.000000e+00 -0.111950000 -0.111950000 26    Rate
+16 0.000000e+00 -0.336750000 -0.336750000 26    Rate
+17 0.000000e+00 -0.226150000 -0.226150000 26    Rate
+18 0.000000e+00 -0.467600000 -0.467600000 26    Rate
+19 0.000000e+00 -0.636750000 -0.636750000 26    Rate
+20 0.000000e+00 -0.242000000 -0.242000000 26    Rate
+21 0.000000e+00 -0.204900000 -0.204900000 26    Rate
+22 0.000000e+00 -0.319400000 -0.319400000 26    Rate
+23 0.000000e+00 -0.515150000 -0.515150000 26    Rate
+24 0.000000e+00 -0.434500000 -0.434500000 26    Rate
+25 0.000000e+00 -0.422750000 -0.422750000 26    Rate
+26 0.000000e+00 -0.188600000 -0.188600000 26    Rate
+27 0.000000e+00 -0.204600000 -0.204600000 26    Rate
+28 0.000000e+00 -0.182600000 -0.182600000 26    Rate
+29 1.379022e-01 -0.003724671  0.025455440 26    Rate</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="期間以上のデータの場合の-did" class="level1">
+<h1>2 期間以上のデータの場合の DID</h1>
+<section id="プログラム4.3-did-による多期間データの分析" class="level4">
+<h4 class="anchored" data-anchor-id="プログラム4.3-did-による多期間データの分析">プログラム4.3 DID による多期間データの分析</h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(broom)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(estimatr)</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>df_organ_donations_full <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(URL_ORGAN_FULL)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Rows: 162 Columns: 7
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: ","
+chr (2): State, Quarter
+dbl (5): Rate, Quarter_Num, IsTreatmentGroup, AfterTreatment, IsTreatment
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>df_organ_donations_full <span class="sc">|&gt;</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  estimatr<span class="sc">::</span><span class="fu">lm_robust</span>(</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>    Rate <span class="sc">~</span> IsTreatment <span class="sc">+</span> State <span class="sc">+</span> <span class="fu">factor</span>(Quarter_Num),</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">clusters =</span> State,</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">se_type =</span> <span class="st">"stata"</span>,</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> _,</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>  broom<span class="sc">::</span><span class="fu">tidy</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                        term     estimate    std.error     statistic
+1                (Intercept)  0.765547056 5.190062e-03  1.475025e+02
+2                IsTreatment -0.022458974 6.720766e-03 -3.341729e+00
+3               StateArizona -0.532866667 7.017536e-16 -7.593359e+14
+4            StateCalifornia -0.495037179 3.360383e-03 -1.473157e+02
+5              StateColorado -0.105483333 6.132095e-16 -1.720184e+14
+6           StateConnecticut -0.380183333 6.226595e-16 -6.105799e+14
+7  StateDistrict of Columbia -0.430050000 7.781612e-16 -5.526490e+14
+8               StateFlorida -0.376950000 6.121172e-16 -6.158134e+14
+9                StateHawaii -0.352416667 6.749297e-16 -5.221532e+14
+10            StateLouisiana -0.216733333 6.117559e-16 -3.542807e+14
+11             StateMaryland -0.307616667 6.411424e-16 -4.797946e+14
+12             StateMichigan -0.540866667 7.838924e-16 -6.899756e+14
+13            StateMinnesota -0.245716667 6.249258e-16 -3.931934e+14
+14             StateMissouri -0.365983333 6.472590e-16 -5.654357e+14
+15              StateMontana -0.118450000 6.792498e-16 -1.743836e+14
+16             StateNebraska -0.330816667 7.041260e-16 -4.698259e+14
+17        StateNew Hampshire -0.229200000 6.409075e-16 -3.576179e+14
+18           StateNew Jersey -0.460750000 6.701660e-16 -6.875162e+14
+19             StateNew York -0.643550000 7.575716e-16 -8.494907e+14
+20       StateNorth Carolina -0.248350000 6.347066e-16 -3.912831e+14
+21                 StateOhio -0.207733333 6.793436e-16 -3.057854e+14
+22         StatePennsylvania -0.319050000 6.437920e-16 -4.955793e+14
+23       StateSouth Carolina -0.504283333 6.919558e-16 -7.287797e+14
+24            StateTennessee -0.438133333 6.122021e-16 -7.156678e+14
+25             StateVirginia -0.432383333 6.726616e-16 -6.427947e+14
+26           StateWashington -0.186316667 6.471168e-16 -2.879182e+14
+27            StateWisconsin -0.201216667 6.794499e-16 -2.961464e+14
+28              StateWyoming -0.182333333 6.471958e-16 -2.817282e+14
+29      factor(Quarter_Num)2 -0.002396296 5.705411e-03 -4.200042e-01
+30      factor(Quarter_Num)3  0.004866667 5.298319e-03  9.185303e-01
+31      factor(Quarter_Num)4  0.015765147 7.109509e-03  2.217473e+00
+32      factor(Quarter_Num)5  0.011639221 5.775128e-03  2.015405e+00
+33      factor(Quarter_Num)6  0.016842925 1.269650e-02  1.326580e+00
+        p.value     conf.low    conf.high df outcome
+1  1.547558e-39  0.754878731  0.776215381 26    Rate
+2  2.529765e-03 -0.036273706 -0.008644243 26    Rate
+3  0.000000e+00 -0.532866667 -0.532866667 26    Rate
+4  1.599329e-39 -0.501944545 -0.488129814 26    Rate
+5  0.000000e+00 -0.105483333 -0.105483333 26    Rate
+6  0.000000e+00 -0.380183333 -0.380183333 26    Rate
+7  0.000000e+00 -0.430050000 -0.430050000 26    Rate
+8  0.000000e+00 -0.376950000 -0.376950000 26    Rate
+9  0.000000e+00 -0.352416667 -0.352416667 26    Rate
+10 0.000000e+00 -0.216733333 -0.216733333 26    Rate
+11 0.000000e+00 -0.307616667 -0.307616667 26    Rate
+12 0.000000e+00 -0.540866667 -0.540866667 26    Rate
+13 0.000000e+00 -0.245716667 -0.245716667 26    Rate
+14 0.000000e+00 -0.365983333 -0.365983333 26    Rate
+15 0.000000e+00 -0.118450000 -0.118450000 26    Rate
+16 0.000000e+00 -0.330816667 -0.330816667 26    Rate
+17 0.000000e+00 -0.229200000 -0.229200000 26    Rate
+18 0.000000e+00 -0.460750000 -0.460750000 26    Rate
+19 0.000000e+00 -0.643550000 -0.643550000 26    Rate
+20 0.000000e+00 -0.248350000 -0.248350000 26    Rate
+21 0.000000e+00 -0.207733333 -0.207733333 26    Rate
+22 0.000000e+00 -0.319050000 -0.319050000 26    Rate
+23 0.000000e+00 -0.504283333 -0.504283333 26    Rate
+24 0.000000e+00 -0.438133333 -0.438133333 26    Rate
+25 0.000000e+00 -0.432383333 -0.432383333 26    Rate
+26 0.000000e+00 -0.186316667 -0.186316667 26    Rate
+27 0.000000e+00 -0.201216667 -0.201216667 26    Rate
+28 0.000000e+00 -0.182333333 -0.182333333 26    Rate
+29 6.779331e-01 -0.014123937  0.009331344 26    Rate
+30 3.667844e-01 -0.006024184  0.015757518 26    Rate
+31 3.553881e-02  0.001151342  0.030378953 26    Rate
+32 5.430876e-02 -0.000231725  0.023510168 26    Rate
+33 1.961823e-01 -0.009255102  0.042940952 26    Rate</code></pre>
+</div>
+</div>
+</section>
+<section id="プログラム4.4-イベントスタディによる多期間データの分析" class="level4">
+<h4 class="anchored" data-anchor-id="プログラム4.4-イベントスタディによる多期間データの分析">プログラム4.4 イベントスタディによる多期間データの分析</h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>df_organ_donations_full <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(URL_ORGAN_FULL)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Rows: 162 Columns: 7
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: ","
+chr (2): State, Quarter
+dbl (5): Rate, Quarter_Num, IsTreatmentGroup, AfterTreatment, IsTreatment
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>df_organ_donations_full <span class="sc">|&gt;</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">QuarterNum_1 =</span> <span class="fu">if_else</span>(Quarter_Num <span class="sc">==</span> <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">0</span>),</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">QuarterNum_2 =</span> <span class="fu">if_else</span>(Quarter_Num <span class="sc">==</span> <span class="dv">2</span>, <span class="dv">1</span>, <span class="dv">0</span>),</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">QuarterNum_4 =</span> <span class="fu">if_else</span>(Quarter_Num <span class="sc">==</span> <span class="dv">4</span>, <span class="dv">1</span>, <span class="dv">0</span>),</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">QuarterNum_5 =</span> <span class="fu">if_else</span>(Quarter_Num <span class="sc">==</span> <span class="dv">5</span>, <span class="dv">1</span>, <span class="dv">0</span>),</span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">QuarterNum_6 =</span> <span class="fu">if_else</span>(Quarter_Num <span class="sc">==</span> <span class="dv">6</span>, <span class="dv">1</span>, <span class="dv">0</span>),</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">Quarter_Num =</span> <span class="fu">factor</span>(Quarter_Num),</span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>  estimatr<span class="sc">::</span><span class="fu">lm_robust</span>(</span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>    Rate <span class="sc">~</span></span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>      QuarterNum_1<span class="sc">:</span>IsTreatmentGroup <span class="sc">+</span></span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>      QuarterNum_2<span class="sc">:</span>IsTreatmentGroup <span class="sc">+</span></span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a>      QuarterNum_4<span class="sc">:</span>IsTreatmentGroup <span class="sc">+</span></span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a>      QuarterNum_5<span class="sc">:</span>IsTreatmentGroup <span class="sc">+</span></span>
+<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a>      QuarterNum_6<span class="sc">:</span>IsTreatmentGroup <span class="sc">+</span></span>
+<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a>      State <span class="sc">+</span></span>
+<span id="cb24-18"><a href="#cb24-18" aria-hidden="true" tabindex="-1"></a>      Quarter_Num,</span>
+<span id="cb24-19"><a href="#cb24-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">clusters =</span> State,</span>
+<span id="cb24-20"><a href="#cb24-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">se_type =</span> <span class="st">"stata"</span>,</span>
+<span id="cb24-21"><a href="#cb24-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> _,</span>
+<span id="cb24-22"><a href="#cb24-22" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb24-23"><a href="#cb24-23" aria-hidden="true" tabindex="-1"></a>  broom<span class="sc">::</span><span class="fu">tidy</span>() <span class="ot">-&gt;</span> result</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>missing_standard <span class="ot">&lt;-</span> <span class="fu">tribble</span>(</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="sc">~</span>estimate, <span class="sc">~</span> conf.low, <span class="sc">~</span>conf.high, <span class="sc">~</span>quarter,</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">3</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>result <span class="sc">|&gt;</span></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(term, estimate, conf.low, conf.high) <span class="sc">|&gt;</span></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">quarter =</span> <span class="fu">case_when</span>(</span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>      term <span class="sc">==</span> <span class="st">"QuarterNum_1:IsTreatmentGroup"</span> <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>      term <span class="sc">==</span> <span class="st">"IsTreatmentGroup:QuarterNum_2"</span> <span class="sc">~</span> <span class="dv">2</span>,</span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>      term <span class="sc">==</span> <span class="st">"IsTreatmentGroup:QuarterNum_4"</span> <span class="sc">~</span> <span class="dv">4</span>,</span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>      term <span class="sc">==</span> <span class="st">"IsTreatmentGroup:QuarterNum_5"</span> <span class="sc">~</span> <span class="dv">5</span>,</span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>      term <span class="sc">==</span> <span class="st">"IsTreatmentGroup:QuarterNum_6"</span> <span class="sc">~</span> <span class="dv">6</span>,</span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="cn">NA</span></span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>term) <span class="sc">|&gt;</span></span>
+<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(quarter)) <span class="sc">|&gt;</span></span>
+<span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_row</span>(missing_standard) <span class="sc">|&gt;</span></span>
+<span id="cb25-21"><a href="#cb25-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> quarter, <span class="at">y =</span> estimate)) <span class="sc">+</span></span>
+<span id="cb25-22"><a href="#cb25-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb25-23"><a href="#cb25-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb25-24"><a href="#cb25-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> conf.low, <span class="at">ymax =</span> conf.high), <span class="at">alpha =</span> <span class="fl">0.2</span>) <span class="sc">+</span></span>
+<span id="cb25-25"><a href="#cb25-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">"dotted"</span>) <span class="sc">+</span></span>
+<span id="cb25-26"><a href="#cb25-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fl">3.5</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="chapter4_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="パラレルトレンド仮説と検証" class="level1">
+<h1>パラレルトレンド仮説と検証</h1>
+<section id="プログラム4.5-グラフィカルな図によるプレトレンドテスト" class="level4">
+<h4 class="anchored" data-anchor-id="プログラム4.5-グラフィカルな図によるプレトレンドテスト">プログラム4.5 グラフィカルな図によるプレトレンドテスト</h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>df_organ_donations_full <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(URL_ORGAN_FULL)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Rows: 162 Columns: 7
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: ","
+chr (2): State, Quarter
+dbl (5): Rate, Quarter_Num, IsTreatmentGroup, AfterTreatment, IsTreatment
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>df_organ_donations_full <span class="sc">|&gt;</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(IsTreatmentGroup, Quarter_Num) <span class="sc">|&gt;</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">Rate_mean =</span> <span class="fu">mean</span>(Rate)</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">IsTreatmentGroup =</span> <span class="fu">factor</span>(IsTreatmentGroup)</span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(</span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(</span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>      <span class="at">x =</span> Quarter_Num,</span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> Rate_mean,</span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>      <span class="at">group =</span> IsTreatmentGroup,</span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a>      <span class="at">linetype =</span> IsTreatmentGroup</span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fl">3.5</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
+<span id="cb28-19"><a href="#cb28-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_cartesian</span>(</span>
+<span id="cb28-20"><a href="#cb28-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.6</span>)</span>
+<span id="cb28-21"><a href="#cb28-21" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`summarise()` has grouped output by 'IsTreatmentGroup'. You can override using
+the `.groups` argument.</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="chapter4_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

@@ -1,0 +1,375 @@
+---
+title: "3_A/Bテストを用いて実務制約内で効果検証を行う"
+format: gfm
+editor: visual
+---
+
+# 前準備
+
+```{r}
+library(tidyverse)
+library(broom)
+library(digest)
+
+URL_LENTA_DATA <- "https://raw.githubusercontent.com/HirotakeIto/intro_to_impact_evaluation_with_python/main/data/lenta_dataset.csv"
+URL_CLUSTER_TRIAL <- "https://raw.githubusercontent.com/HirotakeIto/intro_to_impact_evaluation_with_python/main/data/ch3_cluster_trial.csv"
+URL_STRATIFIED_TRIAL <- "https://raw.githubusercontent.com/HirotakeIto/intro_to_impact_evaluation_with_python/main/data/ch3_stratified_trial.csv"
+URL_AATEST <- "https://raw.githubusercontent.com/HirotakeIto/intro_to_impact_evaluation_with_python/main/data/ch3_aatest_trial.csv"
+URL_NONCOMPLIANCE <- "https://raw.githubusercontent.com/HirotakeIto/intro_to_impact_evaluation_with_python/main/data/ch3_noncompliance_abtest.csv"
+URL_TITANIC <- "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/titanic.csv"
+```
+
+# A/B テストについての発展的な話題
+
+## A/A テスト：A/B テスト設計の妥当性を確認する
+
+### プログラム3.1 割当単位と分析単位が不一致な場合の回帰分析
+
+```{r}
+df_cluster_trial <- read_csv(URL_CLUSTER_TRIAL)
+
+df_cluster_trial |>
+  lm(data = _, is_click ~ is_treatment) |>
+  summary()
+```
+
+### プログラム3.2 A/A テストの分析（A/A テストが成功している時）
+
+```{r}
+df_aatest <- read_csv(URL_AATEST)
+
+df_aatest |>
+  lm(data = _, is_click ~ is_treatment) |>
+  summary()
+```
+
+### プログラム3.3 A/A テストのリプレイ
+
+```{r}
+assign_treatment_randomly <- function(id, salt) {
+  hash_value <- digest(
+    paste0(salt, "_", id),
+    algo = "sha256",
+    serialize = FALSE
+    )
+  
+  return(strtoi(substr(hash_value, 1, 8), base = 16) %% 2)
+}
+```
+
+```{r}
+replays <- map_dbl(1:300, function(i) {
+  salt <- paste0("salt", i)
+  result <- df_aatest |>
+    mutate(
+      is_treatment_in_aa = map_int(
+        imp_id, assign_treatment_randomly, salt = salt
+      )
+    ) |>
+    lm(data = _, is_click ~ is_treatment_in_aa) |>
+    tidy()
+  
+  return(result$p.value[2])
+})
+```
+
+```{r}
+tibble(p_value = replays) |>
+  ggplot(aes(x = p_value)) +
+  geom_histogram() +
+  labs(title = "distribution of p value")
+```
+
+### プログラム3.5 コルモゴロフ-スミルノフ検定による分布の確認
+
+```{r}
+ks.test(replays, y = "punif")
+```
+
+# 状況に応じた A/B テストのモデリング
+
+## クラスター A/B テスト
+
+### プログラム3.6 クラスターA/B テストデータにおける A/A テストのリプレイ
+
+```{r}
+df_cluster_trial <- read_csv(URL_CLUSTER_TRIAL)
+df_cluster_trial |>
+  group_by(uid) |>
+  summarise(
+    n = n(),
+    click = sum(is_click),
+    ctr = sum(is_click) / n()
+  )
+```
+
+```{r}
+replays <- map_dbl(1:300, function(i) {
+  salt <- paste0("salt", i)
+  result <- df_cluster_trial |>
+    mutate(
+      is_treatment_in_aa = map_int(
+        uid, assign_treatment_randomly, salt = salt
+      )
+    ) |>
+    lm(data = _, is_click ~ is_treatment_in_aa) |>
+    tidy()
+
+  return(result$p.value[2])
+})
+```
+
+```{r}
+tibble(p_value = replays) |>
+  ggplot(aes(x = p_value)) +
+  geom_histogram() +
+  labs(title = "distribution of p value")
+```
+
+```{r}
+ks.test(replays, y = "punif")
+```
+
+### プログラム3.7 クラスター A/B テストデータの分析
+
+```{r}
+library(estimatr)
+
+df_cluster_trial <- read_csv(URL_CLUSTER_TRIAL)
+df_cluster_trial |>
+  estimatr::lm_robust(
+    is_click ~ is_treatment,
+    data = _,
+    clusters = uid,
+    se_type = "stata"
+    
+  ) |> summary()
+```
+
+### プログラム3.8 クラスターA/BテストデータのA/Aテスト
+
+```{r}
+replays <- map_dbl(1:300, function(i) {
+  salt <- paste0("salt", i)
+  result <- df_cluster_trial |>
+    mutate(
+      is_treatment_in_aa = map_int(
+        uid, assign_treatment_randomly, salt = salt
+      )
+    ) |>
+    estimatr::lm_robust(
+      is_click ~ is_treatment_in_aa,
+      data = _,
+      clusters = uid,
+      se_type = "stata"
+      ) |>
+    tidy()
+
+  return(result$p.value[2])
+})
+```
+
+```{r}
+tibble(p_value = replays) |>
+  ggplot(aes(x = p_value)) +
+  geom_histogram() +
+  labs(title = "distribution of p value")
+```
+
+```{r}
+ks.test(replays, y = "punif")
+```
+
+# 層化 A/B テスト
+
+### プログラム3.9 シミュレーション：ランダムな割り当てをした場合の性別の偏り
+
+```{r}
+set.seed(0)
+generate_sample <- function() {
+  mean(sample(c(0, 1), size = 500, replace = TRUE, prob = c(0.5, 0.5)))
+}
+
+tibble(
+  id = 1:100,
+  value = map_dbl(id, ~ generate_sample())
+) |>
+  ggplot(aes(x = value)) +
+  geom_histogram() +
+  labs(
+    x = "male ratio"
+  )
+```
+
+### プログラム3.10 層化 A/B テストにおけるランダムな割り当て
+
+```{r}
+set.seed(0)
+
+df_titanic <- read_csv(URL_TITANIC) |>
+  select(survived, sex, pclass)
+
+label_with_prob <- function(prob) {
+  sample(c(0, 1), size = 1, prob = c(1 - prob, prob))
+}
+
+df_titanic |>
+  group_by(sex, pclass) |>
+  mutate(
+    is_treat = map_dbl(
+      1:n(), ~ label_with_prob(0.3)
+    )
+  ) |> ungroup() -> df_titanic
+```
+
+#### プログラム3.11　サブグループごとの割当比率を確認する
+
+```{r}
+df_titanic |>
+  group_by(sex, pclass) |>
+  summarise(
+    mean_is_treat = mean(is_treat)
+  )
+```
+
+## 層化 A/B テストの分析の実装
+
+### プログラム3.12 層化 A/B テストの分析（通常の A/B テストと同様に行った場合）
+
+```{r}
+df_stratified <- read_csv(URL_STRATIFIED_TRIAL)
+
+df_stratified |>
+  lm(data = _, y ~ is_treatment) |>
+  summary()
+```
+
+#### プログラム3.13 層化 A/B テストの分析（ダミー変数を利用した場合）
+
+```{r}
+df_stratified |>
+  lm(data = _, y ~ is_treatment + group_name) |>
+  summary()
+```
+
+## 処置と割当の不一致 A/B テストにおける Non-compliance
+
+#### プログラム3.14 施策意図の効果の分析：Intent to Treat
+
+```{r}
+df_noncompliance <- read_csv(URL_NONCOMPLIANCE)
+
+df_noncompliance |>
+  lm(data = _, purchase ~ assignment) |>
+  summary()
+```
+
+#### プログラム3.15 平均的な開封割合の確認
+
+```{r}
+df_noncompliance |>
+  group_by(assignment) |>
+  summarise(
+    is_deliver_mean = mean(is_deliver)
+  )
+```
+
+#### プログラム3.16 施策効果の復元：操作変数法の２段階推定による分析
+
+##### lm による推定
+
+```{r}
+first_stage <- df_noncompliance |>
+  lm(is_deliver ~ assignment + x, data = _)
+
+df_noncompliance_iv <- df_noncompliance |>
+  mutate(
+    pred_is_deliver = predict(first_stage)
+  )
+
+second_stage <- df_noncompliance_iv |>
+  lm(purchase ~ pred_is_deliver + x, data = _)
+
+summary(second_stage)
+```
+
+##### `{AER}` による推定（標準誤差の値がちょっとズレている）
+
+```{r}
+library(AER)
+
+df_noncompliance |>
+  AER::ivreg(
+    purchase ~ is_deliver + x | assignment + x,
+    data = _) |>
+  summary()
+```
+
+##### `{sem}` による推定（標準誤差の値がちょっとズレている）
+
+```{r}
+library(sem)
+
+df_noncompliance |>
+  sem::tsls(
+    purchase ~ is_deliver + x,
+    instruments = ~ assignment + x,
+    data = _) |>
+  summary()
+```
+
+# 共変量を入れて分析をする
+
+#### プログラム3.17 共変量を考慮した A/B テストの分析
+
+```{r}
+df_abtest <- read_csv(URL_LENTA_DATA)
+
+df_abtest |>
+  lm(response_att ~ is_treatment + food_share_15d + age + is_women, data = _) |>
+  summary()
+```
+
+```{r}
+# 共変量を用いずに分析した推定結果
+df_abtest |>
+  lm(response_att ~ is_treatment, data = _) |>
+  summary()
+```
+
+# 施策効果の異質性：どこで効果があるのかを知る
+
+#### プログラム3.18 サブサンプル分割による異質性の分析
+
+```{r}
+library(stargazer)
+
+df_abtest <- read_csv(URL_LENTA_DATA)
+
+result_men <- df_abtest |>
+  filter(is_women == 0) |>
+  lm(response_att ~ is_treatment, data = _)
+
+result_women <- df_abtest |>
+  filter(is_women == 1) |>
+  lm(response_att ~ is_treatment, data = _)
+
+stargazer::stargazer(
+  result_men, result_women,
+  column.labels = c("only men model", "only women model"),
+  type = "text"
+)
+```
+
+#### プログラム3.19 交差項による異質性の分析
+
+```{r}
+df_abtest <- read_csv(URL_LENTA_DATA)
+
+df_abtest |>
+  lm(
+    response_att ~ is_treatment + is_women + is_treatment * is_women,
+    data = _
+  ) |>
+  summary()
+```

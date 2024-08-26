@@ -1,0 +1,174 @@
+---
+title: "chaper4"
+format: html
+editor: visual
+---
+
+# 前準備
+
+```{r}
+library(tidyverse)
+
+URL_ORGAN_SHORT <- "https://raw.githubusercontent.com/HirotakeIto/intro_to_impact_evaluation_with_python/main/data/ch4_organ_donations_short.csv"
+URL_ORGAN_FULL <- "https://raw.githubusercontent.com/HirotakeIto/intro_to_impact_evaluation_with_python/main/data/ch4_organ_donations_full.csv"
+```
+
+# DID の発想に基づく施策効果分析
+
+#### プログラム4.1 DID の発想に基づく施策効果分析
+
+```{r}
+df_organ_donations_short <- read_csv(URL_ORGAN_SHORT)
+
+df_organ_donations_short
+```
+
+```{r}
+df_organ_donations_short |>
+  group_by(IsTreatmentGroup, AfterTreatment) |>
+  summarise(
+    rate_mean = mean(Rate)
+  )
+```
+
+```{r}
+df_organ_donations_short |>
+  group_by(IsTreatmentGroup, AfterTreatment) |>
+  summarise(
+    rate_mean = mean(Rate)
+  ) |>
+  pivot_wider(
+    names_from = c(IsTreatmentGroup, AfterTreatment),
+    values_from = rate_mean
+  ) |>
+  summarise(
+    `result_%` = 100 * ((`1_1` - `1_0`) - (`0_1` - `0_0`))
+  )
+```
+
+#### プログラム4.2 DID による訴求内容変更施策の分析
+
+```{r}
+library(broom)
+library(estimatr)
+
+df_organ_donations_short <- read_csv(URL_ORGAN_SHORT)
+
+df_organ_donations_short |>
+  estimatr::lm_robust(
+    Rate ~ IsTreatment + State + factor(Quarter_Num),
+    clusters = State,
+    se_type = "stata",
+    data = _,
+  ) |>
+  broom::tidy()
+```
+
+# 2 期間以上のデータの場合の DID
+
+#### プログラム4.3 DID による多期間データの分析
+
+```{r}
+library(broom)
+library(estimatr)
+
+df_organ_donations_full <- read_csv(URL_ORGAN_FULL)
+
+df_organ_donations_full |>
+  estimatr::lm_robust(
+    Rate ~ IsTreatment + State + factor(Quarter_Num),
+    clusters = State,
+    se_type = "stata",
+    data = _,
+  ) |>
+  broom::tidy()
+```
+
+#### プログラム4.4 イベントスタディによる多期間データの分析
+
+```{r}
+df_organ_donations_full <- read_csv(URL_ORGAN_FULL)
+
+df_organ_donations_full |>
+  mutate(
+    QuarterNum_1 = if_else(Quarter_Num == 1, 1, 0),
+    QuarterNum_2 = if_else(Quarter_Num == 2, 1, 0),
+    QuarterNum_4 = if_else(Quarter_Num == 4, 1, 0),
+    QuarterNum_5 = if_else(Quarter_Num == 5, 1, 0),
+    QuarterNum_6 = if_else(Quarter_Num == 6, 1, 0),
+    Quarter_Num = factor(Quarter_Num),
+  ) |>
+  estimatr::lm_robust(
+    Rate ~
+      QuarterNum_1:IsTreatmentGroup +
+      QuarterNum_2:IsTreatmentGroup +
+      QuarterNum_4:IsTreatmentGroup +
+      QuarterNum_5:IsTreatmentGroup +
+      QuarterNum_6:IsTreatmentGroup +
+      State +
+      Quarter_Num,
+    clusters = State,
+    se_type = "stata",
+    data = _,
+  ) |>
+  broom::tidy() -> result
+```
+
+```{r}
+missing_standard <- tribble(
+  ~estimate, ~ conf.low, ~conf.high, ~quarter,
+  0, 0, 0, 3
+)
+
+result |>
+  select(term, estimate, conf.low, conf.high) |>
+  mutate(
+    quarter = case_when(
+      term == "QuarterNum_1:IsTreatmentGroup" ~ 1,
+      term == "IsTreatmentGroup:QuarterNum_2" ~ 2,
+      term == "IsTreatmentGroup:QuarterNum_4" ~ 4,
+      term == "IsTreatmentGroup:QuarterNum_5" ~ 5,
+      term == "IsTreatmentGroup:QuarterNum_6" ~ 6,
+      TRUE ~ NA
+    )
+  ) |>
+  select(-term) |>
+  filter(!is.na(quarter)) |>
+  add_row(missing_standard) |>
+  ggplot(aes(x = quarter, y = estimate)) +
+  geom_point() +
+  geom_line() +
+  geom_ribbon(aes(ymin = conf.low, ymax = conf.high), alpha = 0.2) +
+  geom_hline(yintercept = 0, linetype = "dotted") +
+  geom_vline(xintercept = 3.5, linetype = "dashed")
+```
+
+# パラレルトレンド仮説と検証
+
+#### プログラム4.5 グラフィカルな図によるプレトレンドテスト
+
+```{r}
+df_organ_donations_full <- read_csv(URL_ORGAN_FULL)
+
+df_organ_donations_full |>
+  group_by(IsTreatmentGroup, Quarter_Num) |>
+  summarise(
+    Rate_mean = mean(Rate)
+  ) |>
+  mutate(
+    IsTreatmentGroup = factor(IsTreatmentGroup)
+  ) |>
+  ggplot(
+    aes(
+      x = Quarter_Num,
+      y = Rate_mean,
+      group = IsTreatmentGroup,
+      linetype = IsTreatmentGroup
+      )
+  ) +
+  geom_line() +
+  geom_vline(xintercept = 3.5, linetype = "dashed") +
+  coord_cartesian(
+    ylim = c(0, 0.6)
+  )
+```
